@@ -24,6 +24,7 @@ public class Constant {
         public static final String FAILURE = "Failure.";
         public static final String ERROR = "Error.";
         public static final String DATA_NOT_FOUND = "Data not found.";
+        public static final String USER_NOT_FOUND = "User not found.";
         public static final String DATA_DUPLICATE = "Data is duplicated.";
         public static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server Error.";
         public static final String ERROR_FILE_STORAGE_UPLOAD = "File storage upload error.";
@@ -31,6 +32,12 @@ public class Constant {
         public static final String ERROR_FILE_STORAGE_DOWNLOAD = "File storage download error.";
         public static final String ERROR_FILE_NOT_FOUND = "File not found.";
         public static final String ERROR_BAD_REQUEST = "Bad request.";
+        public static final String ERROR_PASSWORD_INCORRECT = "Password Incorrect.";
+        public static final String PASSWORD_RESET_EXP = "The password reset link has expired";
+        public static final String PASSWORD_NOT_STRONG = "Password not strong enough";
+        public static final String PASSWORD_NOT_MATCH = "Password not match";
+        public static final String NO_PERMISSION_SYS_ADMIN = "No permission to edit/delete system admin roles";
+        public static final String INVALID_EMAIL_FORMAT_MSG = "Invalid email format.";
 
     }
 
