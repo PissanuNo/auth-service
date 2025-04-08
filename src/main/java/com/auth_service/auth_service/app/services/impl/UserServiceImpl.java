@@ -2,6 +2,7 @@ package com.auth_service.auth_service.app.services.impl;
 
 import com.auth_service.auth_service.app.model.dbs.UserAccessModel;
 import com.auth_service.auth_service.app.model.dbs.UserModel;
+import com.auth_service.auth_service.app.model.dto.client.EmailRequest;
 import com.auth_service.auth_service.app.model.dto.user.UserRequest;
 import com.auth_service.auth_service.app.model.dto.user.UserResponse;
 import com.auth_service.auth_service.app.repositories.RoleRepository;
@@ -9,6 +10,7 @@ import com.auth_service.auth_service.app.repositories.UserAccessRepository;
 import com.auth_service.auth_service.app.repositories.UserRepository;
 import com.auth_service.auth_service.app.services.UserService;
 import com.auth_service.auth_service.app.services.UtilService;
+import com.auth_service.auth_service.app.services.client.CommuticationClient;
 import com.auth_service.auth_service.core.model.ResponseBodyModel;
 import com.auth_service.auth_service.core.service.PrincipalService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -17,9 +19,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,6 +42,10 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PrincipalService principalService;
     private final UtilService utilService;
+    private final CommuticationClient commuticationClient;
+
+    @Value("${web.portal.endpoint}")
+    private String webPortalEndpoint;
 
     @Transactional
     @Override
@@ -84,7 +93,16 @@ public class UserServiceImpl implements UserService {
 
             log.info(String.format("Created user with password {%s}, {%s}", pwd, activationToken));
 
-            //TODO send email activate account
+            //send email
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("password", pwd);
+            variables.put("email", request.getEmail());
+            variables.put("link", webPortalEndpoint + "/auth/activate?token=" + activationToken);
+            commuticationClient.sendEmail(EmailRequest.builder()
+                            .recipientEmail(request.getEmail())
+                            .templateName("activate_account")
+                            .variables(variables)
+                    .build());
 
             response.setOperationSuccess(SUCCESS_CODE, SUCCESS, null);
         } catch (Exception ex) {
@@ -99,7 +117,15 @@ public class UserServiceImpl implements UserService {
         try{
             String userId = principalService.getUserId();
             Optional<UserModel> userModel = userRepository.findByUserIdAndStatus(request.getUserId(), true);
-            response.setOperationSuccess(SUCCESS_CODE, SUCCESS, null);
+            if (userModel.isPresent()) {
+                userModel.get().setRoleId(request.getRoleId());
+                userModel.get().setModifyBy(userId);
+                userModel.get().setModifyDate(new Timestamp(System.currentTimeMillis()));
+                userRepository.saveAndFlush(userModel.get());
+                response.setOperationSuccess(SUCCESS_CODE, SUCCESS, null);
+            }else {
+                response.setOperationError(ERROR_CODE_BUSINESS, DATA_NOT_FOUND, null);
+            }
         }catch (Exception ex){
             log.error("Error updating user: ", ex);
             response.setOperationError(INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MSG, null);

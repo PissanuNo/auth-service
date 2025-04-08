@@ -73,7 +73,7 @@ public class AuthController {
             consumes = APPLICATION_JSON_VALUE,
             produces = APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<ResponseBodyModel<CheckPermissionResponse>> checkPassword(@Valid @RequestBody CheckPermissionRequest request) {
+    public ResponseEntity<ResponseBodyModel<CheckPermissionResponse>> checkPermission(@Valid @RequestBody CheckPermissionRequest request) {
         ResponseBodyModel<CheckPermissionResponse> response = authService.checkPermission(request);
         return ResponseEntity.ok(response);
     }

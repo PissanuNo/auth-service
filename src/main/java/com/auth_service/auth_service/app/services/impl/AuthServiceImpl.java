@@ -4,9 +4,11 @@ import com.auth_service.auth_service.app.model.dbs.RoleCorporateModel;
 import com.auth_service.auth_service.app.model.dbs.UserModel;
 import com.auth_service.auth_service.app.model.dbs.UserResetPasswordTokenModel;
 import com.auth_service.auth_service.app.model.dto.auth.*;
+import com.auth_service.auth_service.app.model.dto.client.EmailRequest;
 import com.auth_service.auth_service.app.repositories.*;
 import com.auth_service.auth_service.app.services.AuthService;
 import com.auth_service.auth_service.app.services.UtilService;
+import com.auth_service.auth_service.app.services.client.CommuticationClient;
 import com.auth_service.auth_service.core.model.ResponseBodyModel;
 import com.auth_service.auth_service.core.service.JwtUtilService;
 import com.auth_service.auth_service.core.service.PrincipalService;
@@ -15,6 +17,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -38,6 +41,10 @@ public class AuthServiceImpl implements AuthService {
     private final RoleCorporateRepository roleCorporateRepository;
     private final UserResetPasswordTokenRepository userResetPasswordTokenRepository;
     private final PrincipalService principalService;
+    private final CommuticationClient commuticationClient;
+
+    @Value("${web.portal.endpoint}")
+    private String webPortalEndpoint;
 
     @Transactional
     @Override
@@ -109,6 +116,7 @@ public class AuthServiceImpl implements AuthService {
 
             userModel.get().setStatus(true);
             userModel.get().setActivationToken(null);
+            userModel.get().setModifyDate(new Timestamp(System.currentTimeMillis()));
             userRepository.saveAndFlush(userModel.get());
             response.setOperationSuccess(SUCCESS_CODE, SUCCESS, null);
         } catch (Exception ex) {
@@ -140,7 +148,15 @@ public class AuthServiceImpl implements AuthService {
                     .expireDate(expireLocalDateTime)
                     .build());
 
-            //TODO send reset password email
+            //send email
+            Map<String, Object> variable = new HashMap<>();
+            variable.put("link", webPortalEndpoint + "/auth/reset-password?token=" + resetPwdToken);
+            commuticationClient.sendEmail(EmailRequest.builder()
+                    .recipientEmail(userModel.get().getEmail())
+                    .templateName("reset_password")
+                    .recipientEmail(userModel.get().getEmail())
+                    .variables(variable)
+                    .build());
 
             response.setOperationSuccess(SUCCESS_CODE, SUCCESS, null);
         } catch (Exception ex) {
