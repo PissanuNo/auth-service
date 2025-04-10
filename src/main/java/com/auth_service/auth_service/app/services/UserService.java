@@ -10,6 +10,8 @@ public interface UserService {
     @Transactional
     ResponseBodyModel<String> createUser(UserRequest request);
 
+    ResponseBodyModel<String> updateUser(UserRequest request);
+
     ResponseBodyModel<UserResponse> getUserById(String userId);
 
     @Transactional

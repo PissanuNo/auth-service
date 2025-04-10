@@ -112,6 +112,8 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
+    @Transactional
+    @Override
     public ResponseBodyModel<String> updateUser(UserRequest request) {
         ResponseBodyModel<String> response = new ResponseBodyModel<>();
         try{

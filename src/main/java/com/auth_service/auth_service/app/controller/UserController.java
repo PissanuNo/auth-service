@@ -12,8 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import static com.auth_service.auth_service.app.constants.Permissions.menuCode.USER_MANAGEMENT;
-import static com.auth_service.auth_service.app.constants.Permissions.permissionFlag.CREATE;
-import static com.auth_service.auth_service.app.constants.Permissions.permissionFlag.READ;
+import static com.auth_service.auth_service.app.constants.Permissions.permissionFlag.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Controller
@@ -31,6 +30,17 @@ public class UserController {
     )
     public ResponseEntity<ResponseBodyModel<String>> createUser(@Valid @RequestBody UserRequest request) {
         ResponseBodyModel<String> auth = userService.createUser(request);
+        return ResponseEntity.ok(auth);
+    }
+
+    @Permission(menu = USER_MANAGEMENT, permission = UPDATE)
+    @PatchMapping(
+            path = "/s/user",
+            consumes = APPLICATION_JSON_VALUE,
+            produces = APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<ResponseBodyModel<String>> updateUser(@Valid @RequestBody UserRequest request) {
+        ResponseBodyModel<String> auth = userService.updateUser(request);
         return ResponseEntity.ok(auth);
     }
 
